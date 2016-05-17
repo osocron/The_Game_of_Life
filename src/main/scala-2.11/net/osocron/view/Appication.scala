@@ -80,7 +80,6 @@ object Appication extends JFXApp{
   def syncNextState(currentCells: Array[Array[Cell]], nextCells: Array[Array[Cell]]) =
     nextCells.foreach(_.foreach(c => c.setLife(currentCells(c.px)(c.py).isAlive)))
 
-
   def copyState(currentCells: Array[Array[Cell]], nextCells: Array[Array[Cell]]) =
     currentCells.foreach(_.foreach(c => c.setLife(nextCells(c.px)(c.py).isAlive)))
 
