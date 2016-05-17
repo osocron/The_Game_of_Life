@@ -9,13 +9,14 @@ import scalafx.scene.paint._
 import scalafx.Includes._
 
 /**
-  * This is an implementation of Conway's game of life.
+  * This is a Scala implementation of Conway's game of life.
   *
   * Controls:
   * Enter -> Go to next generation
   * Q -> Erase the board
   * Up, Down, Left, Right -> Navigate through the board
   * Space -> Select or unselect a cell
+  *
   */
 
 object Appication extends JFXApp{
@@ -70,7 +71,7 @@ object Appication extends JFXApp{
     cells
   }
 
-  def sync(currentCells: Array[Array[Cell]], nextCells: Array[Array[Cell]]) = {
+  def sync(currentCells: Array[Array[Cell]], nextCells: Array[Array[Cell]]) {
     syncNextState(currentCells,nextCells)
     ruleOfLife(currentCells, nextCells, c => c.neighbors.count(_.isAlive) < 2 || c.neighbors.count(_.isAlive) > 3, l = false)
     ruleOfLife(currentCells, nextCells, c => c.neighbors.count(_.isAlive) == 3, l = true)
@@ -86,7 +87,7 @@ object Appication extends JFXApp{
   def ruleOfLife(currentCells: Array[Array[Cell]], nextCells: Array[Array[Cell]], p: Cell => Boolean, l: Boolean) =
     currentCells.foreach(_.foreach(c => if (p(c)) nextCells(c.px)(c.py).setLife(l)))
 
-  def fillNeighbors(cells: Array[Array[Cell]]) = {
+  def fillNeighbors(cells: Array[Array[Cell]]) {
     for (
       x <- 0 to 49;
       y <- 0 to 49;

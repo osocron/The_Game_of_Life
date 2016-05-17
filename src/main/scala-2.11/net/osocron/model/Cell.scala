@@ -13,8 +13,8 @@ case class Cell(px: Int, py: Int, var neighbors: List[Cell]) extends Rectangle{
   def isAlive = life
   def setLife(l: Boolean) = {
     life = l
-    if (l) fill_=(Color.Black)
-    else fill_=(Color.White)
+    if (l) fill = Color.Black
+    else fill =  Color.White
   }
   def select() = {
     if (!isAlive) fill = Color.Yellow
