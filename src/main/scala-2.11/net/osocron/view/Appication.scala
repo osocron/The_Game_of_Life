@@ -72,17 +72,14 @@ object Appication extends JFXApp{
   }
 
   def sync(currentCells: Array[Array[Cell]], nextCells: Array[Array[Cell]]) {
-    syncNextState(currentCells,nextCells)
+    copyState(nextCells,currentCells)
     ruleOfLife(currentCells, nextCells, c => c.neighbors.count(_.isAlive) < 2 || c.neighbors.count(_.isAlive) > 3, l = false)
     ruleOfLife(currentCells, nextCells, c => c.neighbors.count(_.isAlive) == 3, l = true)
     copyState(currentCells,nextCells)
   }
 
-  def syncNextState(currentCells: Array[Array[Cell]], nextCells: Array[Array[Cell]]) =
-    nextCells.foreach(_.foreach(c => c.setLife(currentCells(c.px)(c.py).isAlive)))
-
-  def copyState(currentCells: Array[Array[Cell]], nextCells: Array[Array[Cell]]) =
-    currentCells.foreach(_.foreach(c => c.setLife(nextCells(c.px)(c.py).isAlive)))
+  def copyState(originalArray: Array[Array[Cell]], changedArray: Array[Array[Cell]]) =
+    originalArray.foreach(_.foreach(c => c.setLife(changedArray(c.px)(c.py).isAlive)))
 
   def ruleOfLife(currentCells: Array[Array[Cell]], nextCells: Array[Array[Cell]], p: Cell => Boolean, l: Boolean) =
     currentCells.foreach(_.foreach(c => if (p(c)) nextCells(c.px)(c.py).setLife(l)))
