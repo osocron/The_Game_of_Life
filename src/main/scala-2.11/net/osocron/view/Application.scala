@@ -21,6 +21,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
   * Q -> Erase the board
   * Up, Down, Left, Right -> Navigate through the board
   * Space -> Select or unselect a cell
+  * P -> Go back in time one generation
   *
   */
 
@@ -30,6 +31,7 @@ object Application extends JFXApp{
   val currentCells = createCells
   val nextCells = createCells
   val loopThread = new Thread(createTask)
+  var timeLine = List(createSnapShot)
   var xp = 25
   var yp = 25
   var execLoop = false
@@ -44,7 +46,8 @@ object Application extends JFXApp{
         ke.code match {
           case KeyCode.Enter => sync(currentCells, nextCells)
           case KeyCode.S => execLoop = !execLoop; if (execLoop) loop
-          case KeyCode.Q => currentCells.foreach(array => array.foreach(_.setLife(false)))
+          case KeyCode.Q => currentCells.foreach(array => array.foreach(_.setLife(false))); timeLine = List(createSnapShot)
+          case KeyCode.P => if (timeLine.nonEmpty) {reverseState(currentCells, timeLine.last); timeLine = timeLine.dropRight(1)}
           case KeyCode.Down => if (yp != 49) {currentCells(xp)(yp).unSelect(); currentCells(xp)(yp+1).select(); yp = yp + 1}
           case KeyCode.Up => if (yp != 0) {currentCells(xp)(yp).unSelect(); currentCells(xp)(yp-1).select(); yp = yp - 1}
           case KeyCode.Right => if (xp != 49) {currentCells(xp)(yp).unSelect(); currentCells(xp+1)(yp).select(); xp = xp + 1}
@@ -67,6 +70,17 @@ object Application extends JFXApp{
         Thread.sleep(500)
       }
     }
+  }
+
+  def createSnapShot = {
+    val array = Array.ofDim[Int](50,50)
+    for(
+      i <- 0 to 49;
+      j <- 0 to 49
+    ){
+      array(i)(j) = 0
+    }
+    array
   }
 
   def createCells = {
@@ -92,11 +106,21 @@ object Application extends JFXApp{
     cells
   }
 
-  def sync(currentCells: Array[Array[Cell]], nextCells: Array[Array[Cell]]) {
-    copyState(nextCells,currentCells)
-    ruleOfLife(currentCells, nextCells, c => c.neighbors.count(_.isAlive) < 2 || c.neighbors.count(_.isAlive) > 3, l = false)
-    ruleOfLife(currentCells, nextCells, c => c.neighbors.count(_.isAlive) == 3, l = true)
-    copyState(currentCells,nextCells)
+  def addToTimeLine(currentCellArray: Array[Array[Cell]]) =
+    timeLine = timeLine :+ createArrayFromCellArray(currentCellArray)
+
+  def createArrayFromCellArray(currentCellArray: Array[Array[Cell]]) = {
+    val array = createSnapShot
+    currentCellArray.foreach(_.foreach(c => if (c.isAlive) array(c.px)(c.py) = 1 else array(c.px)(c.py) = 0))
+    array
+  }
+
+  def sync(currentCellArray: Array[Array[Cell]], nextCellArray: Array[Array[Cell]]) {
+    addToTimeLine(currentCellArray)
+    copyState(nextCellArray,currentCellArray)
+    ruleOfLife(currentCellArray, nextCellArray, c => c.neighbors.count(_.isAlive) < 2 || c.neighbors.count(_.isAlive) > 3, l = false)
+    ruleOfLife(currentCellArray, nextCellArray, c => c.neighbors.count(_.isAlive) == 3, l = true)
+    copyState(currentCellArray,nextCellArray)
   }
 
   def copyState(originalArray: Array[Array[Cell]], changedArray: Array[Array[Cell]]) =
@@ -104,6 +128,9 @@ object Application extends JFXApp{
 
   def ruleOfLife(currentCells: Array[Array[Cell]], nextCells: Array[Array[Cell]], p: Cell => Boolean, l: Boolean) =
     currentCells.foreach(_.foreach(c => if (p(c)) nextCells(c.px)(c.py).setLife(l)))
+
+  def reverseState(cellArray: Array[Array[Cell]], snapShot: Array[Array[Int]]) =
+    cellArray.foreach(_.foreach(c => if (snapShot(c.px)(c.py) == 1) c.setLife(true) else c.setLife(false)))
 
   def fillNeighbors(cells: Array[Array[Cell]]) {
     for (
