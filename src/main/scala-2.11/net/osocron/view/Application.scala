@@ -21,7 +21,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
   * Q -> Erase the board
   * Up, Down, Left, Right -> Navigate through the board
   * Space -> Select or unselect a cell
-  * P -> Go back in time one generation
+  * BackSpace -> Go back in time one generation
   *
   */
 
@@ -47,7 +47,7 @@ object Application extends JFXApp{
           case KeyCode.Enter => sync(currentCells, nextCells)
           case KeyCode.S => execLoop = !execLoop; if (execLoop) loop
           case KeyCode.Q => currentCells.foreach(array => array.foreach(_.setLife(false))); timeLine = List(createSnapShot)
-          case KeyCode.P => if (timeLine.nonEmpty) {reverseState(currentCells, timeLine.last); timeLine = timeLine.dropRight(1)}
+          case KeyCode.BackSpace => if (timeLine.nonEmpty) {reverseState(currentCells, timeLine.last); timeLine = timeLine.dropRight(1)}
           case KeyCode.Down => if (yp != 49) {currentCells(xp)(yp).unSelect(); currentCells(xp)(yp+1).select(); yp = yp + 1}
           case KeyCode.Up => if (yp != 0) {currentCells(xp)(yp).unSelect(); currentCells(xp)(yp-1).select(); yp = yp - 1}
           case KeyCode.Right => if (xp != 49) {currentCells(xp)(yp).unSelect(); currentCells(xp+1)(yp).select(); xp = xp + 1}
