@@ -1,31 +1,38 @@
 package net.osocron.view
 
+import javafx.concurrent.Task
+
 import net.osocron.model.Cell
 
-import scalafx.application.JFXApp
+import scala.concurrent.Future
+import scalafx.application.{JFXApp, Platform}
 import scalafx.scene._
 import scalafx.scene.input.{KeyCode, KeyEvent, MouseEvent}
 import scalafx.scene.paint._
 import scalafx.Includes._
+import scala.concurrent.ExecutionContext.Implicits.global
 
 /**
   * This is a Scala implementation of Conway's game of life.
   *
   * Controls:
   * Enter -> Go to next generation
+  * S -> Loop through generation or stop the loop
   * Q -> Erase the board
   * Up, Down, Left, Right -> Navigate through the board
   * Space -> Select or unselect a cell
   *
   */
 
-object Appication extends JFXApp{
+object Application extends JFXApp{
 
   val group = new Group
   val currentCells = createCells
   val nextCells = createCells
+  val loopThread = new Thread(createTask)
   var xp = 25
   var yp = 25
+  var execLoop = false
 
   stage = new JFXApp.PrimaryStage {
     title.value = "Game of Life"
@@ -35,7 +42,8 @@ object Appication extends JFXApp{
       currentCells.foreach(array => array.foreach(getChildren.add(_)))
       onKeyPressed = (ke: KeyEvent) => {
         ke.code match {
-          case KeyCode.Enter => sync(currentCells,nextCells)
+          case KeyCode.Enter => sync(currentCells, nextCells)
+          case KeyCode.S => execLoop = !execLoop; if (execLoop) loop
           case KeyCode.Q => currentCells.foreach(array => array.foreach(_.setLife(false)))
           case KeyCode.Down => if (yp != 49) {currentCells(xp)(yp).unSelect(); currentCells(xp)(yp+1).select(); yp = yp + 1}
           case KeyCode.Up => if (yp != 0) {currentCells(xp)(yp).unSelect(); currentCells(xp)(yp-1).select(); yp = yp - 1}
@@ -44,6 +52,19 @@ object Appication extends JFXApp{
           case KeyCode.Space => if (currentCells(xp)(yp).isAlive) currentCells(xp)(yp).setLife(false) else currentCells(xp)(yp).setLife(true)
           case _ =>
         }
+      }
+    }
+  }
+
+  def loop: Future[Unit] = Future {
+    createTask.run()
+  }
+
+  def createTask: Task[Unit] = new Task[Unit]() {
+    override def call(): Unit = {
+      while (execLoop) {
+        Platform.runLater(sync(currentCells, nextCells))
+        Thread.sleep(500)
       }
     }
   }
